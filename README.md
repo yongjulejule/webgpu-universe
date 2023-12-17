@@ -1,6 +1,6 @@
 # Conway's life game using WebGPU
 
-[conway](conway.mov)
+[conway](./asset/conway.mov)
 
 # Run 
 
