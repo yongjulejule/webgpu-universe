@@ -1,8 +1,8 @@
-# Conway's life game using WebGPU
+# WebGPU Universe
 
-[conway](./asset/conway.mov)
+WebGPU 갖고놀기
 
-# Run 
+## Run 
 
 ## requirement 
 
@@ -15,6 +15,10 @@ pnpm build
 # (sleep 3; open -a "Google Chrome" http://localhost:3000/gpu ) &
 pnpm start 
 ```
+
+## Conway's life game using WebGPU
+
+[conway](https://github.com/yongjulejule/webgpu-universe/assets/79127797/fb52b81d-9767-4c1e-a806-45642b01ac0c)
 
 
 # References
