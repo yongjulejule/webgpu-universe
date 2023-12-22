@@ -1,4 +1,4 @@
-import LifeGame from './LifeGame/LifeGame'
+import LifeGame from "./LifeGame/LifeGame";
 
 function App() {
   return (
@@ -6,7 +6,7 @@ function App() {
       <h1>Conway&apos;s game of life</h1>
       <LifeGame />
     </>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import drawingShader from './draw.wgsl?raw';
-import computeShader from './compute.wgsl?raw'
+import { useEffect, useRef, useState } from "react";
+import drawingShader from "./draw.wgsl?raw";
+import computeShader from "./compute.wgsl?raw";
 
 const gpu = async (canvas: HTMLCanvasElement) => {
   // const canvas = document.querySelector('canvas');
 
   if (!navigator.gpu) {
     throw new Error(
-      '크롬 쓰셈 (https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API#browser_compatibility)'
+      "크롬 쓰셈 (https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API#browser_compatibility)",
     );
   }
 
@@ -15,15 +15,15 @@ const gpu = async (canvas: HTMLCanvasElement) => {
   const adapter = await navigator.gpu.requestAdapter(); // or "low-power"
   if (!adapter) {
     throw new Error(
-      '브라우저는 webGPU 를 쓸 수 있는데 너의 하드웨어는 그렇지 않네'
+      "브라우저는 webGPU 를 쓸 수 있는데 너의 하드웨어는 그렇지 않네",
     );
   }
 
   const device = await adapter.requestDevice();
 
-  const context = canvas.getContext('webgpu');
+  const context = canvas.getContext("webgpu");
   if (!context) {
-    throw new Error('webgpu 를 쓸 수 없네');
+    throw new Error("webgpu 를 쓸 수 없네");
   }
   const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
   context.configure({
@@ -36,7 +36,7 @@ const gpu = async (canvas: HTMLCanvasElement) => {
   ]);
 
   const vertexBuffer = device.createBuffer({
-    label: 'Cell vertices',
+    label: "Cell vertices",
     size: vertices.byteLength,
     usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
   });
@@ -47,7 +47,7 @@ const gpu = async (canvas: HTMLCanvasElement) => {
     arrayStride: 8,
     attributes: [
       {
-        format: 'float32x2' as const,
+        format: "float32x2" as const,
         offset: 0,
         shaderLocation: 0, // Position, see vertex shader
       },
@@ -55,13 +55,13 @@ const gpu = async (canvas: HTMLCanvasElement) => {
   };
 
   const cellShaderModule = device.createShaderModule({
-    label: 'Cell shader',
+    label: "Cell shader",
     code: drawingShader,
   });
 
   // Create the bind group layout and pipeline layout.
   const bindGroupLayout = device.createBindGroupLayout({
-    label: 'Cell Bind Group Layout',
+    label: "Cell Bind Group Layout",
     entries: [
       {
         binding: 0,
@@ -69,37 +69,37 @@ const gpu = async (canvas: HTMLCanvasElement) => {
           GPUShaderStage.VERTEX |
           GPUShaderStage.COMPUTE |
           GPUShaderStage.FRAGMENT,
-        buffer: { type: 'uniform' as const }, // Grid uniform buffer
+        buffer: { type: "uniform" as const }, // Grid uniform buffer
       },
       {
         binding: 1,
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.COMPUTE,
-        buffer: { type: 'read-only-storage' as const }, // Cell state input buffer
+        buffer: { type: "read-only-storage" as const }, // Cell state input buffer
       },
       {
         binding: 2,
         visibility: GPUShaderStage.COMPUTE,
-        buffer: { type: 'storage' as const }, // Cell state output buffer
+        buffer: { type: "storage" as const }, // Cell state output buffer
       },
     ],
   });
 
   const pipelineLayout = device.createPipelineLayout({
-    label: 'Cell Pipeline Layout',
+    label: "Cell Pipeline Layout",
     bindGroupLayouts: [bindGroupLayout],
   });
 
   const cellPipeline = device.createRenderPipeline({
-    label: 'Cell pipeline',
+    label: "Cell pipeline",
     layout: pipelineLayout,
     vertex: {
       module: cellShaderModule,
-      entryPoint: 'vertexMain',
+      entryPoint: "vertexMain",
       buffers: [vertexBufferLayout],
     },
     fragment: {
       module: cellShaderModule,
-      entryPoint: 'fragmentMain',
+      entryPoint: "fragmentMain",
       targets: [
         {
           format: canvasFormat,
@@ -114,7 +114,7 @@ const gpu = async (canvas: HTMLCanvasElement) => {
 
   const uniformArray = new Float32Array([GRID_SIZE, GRID_SIZE]);
   const uniformBuffer = device.createBuffer({
-    label: 'Grid Uniforms',
+    label: "Grid Uniforms",
     size: uniformArray.byteLength,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
@@ -126,12 +126,12 @@ const gpu = async (canvas: HTMLCanvasElement) => {
   // Create a storage buffer to hold the cell state.
   const cellStateStorage = [
     device.createBuffer({
-      label: 'Cell State A',
+      label: "Cell State A",
       size: cellStateArray.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     }),
     device.createBuffer({
-      label: 'Cell State B',
+      label: "Cell State B",
       size: cellStateArray.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     }),
@@ -154,7 +154,7 @@ const gpu = async (canvas: HTMLCanvasElement) => {
   // Create a bind group to pass the grid uniforms into the pipeline
   const bindGroups = [
     device.createBindGroup({
-      label: 'Cell renderer bind group A',
+      label: "Cell renderer bind group A",
       layout: bindGroupLayout,
       entries: [
         {
@@ -172,7 +172,7 @@ const gpu = async (canvas: HTMLCanvasElement) => {
       ],
     }),
     device.createBindGroup({
-      label: 'Cell renderer bind group B',
+      label: "Cell renderer bind group B",
       layout: bindGroupLayout,
       entries: [
         {
@@ -191,20 +191,19 @@ const gpu = async (canvas: HTMLCanvasElement) => {
     }),
   ];
 
-
   // Create the compute shader that will process the simulation.
   const simulationShaderModule = device.createShaderModule({
-    label: 'Life simulation shader',
+    label: "Life simulation shader",
     code: computeShader,
   });
 
   // Create a compute pipeline that updates the game state.
   const simulationPipeline = device.createComputePipeline({
-    label: 'Simulation pipeline',
+    label: "Simulation pipeline",
     layout: pipelineLayout,
     compute: {
       module: simulationShaderModule,
-      entryPoint: 'computeMain',
+      entryPoint: "computeMain",
       constants: {
         // The workgroup size is used to calculate the cell's neighbors.
         workgroupSize: workgroupSize,
@@ -235,9 +234,9 @@ const gpu = async (canvas: HTMLCanvasElement) => {
       colorAttachments: [
         {
           view: context!.getCurrentTexture().createView(),
-          loadOp: 'clear' as const,
+          loadOp: "clear" as const,
           clearValue: { r: 0, g: 0, b: 0.4, a: 1.0 },
-          storeOp: 'store' as const,
+          storeOp: "store" as const,
         },
       ],
     });
@@ -263,7 +262,7 @@ export default function LifeGame() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [timer, setTimer] = useState(100);
 
-  let run : any = undefined;
+  let run: any = undefined;
   useEffect(() => {
     let id: any;
 
@@ -272,7 +271,7 @@ export default function LifeGame() {
         run = await gpu(canvasRef.current);
         id = setInterval(run, timer);
       }
-    }
+    };
 
     runGpu();
 
@@ -284,8 +283,14 @@ export default function LifeGame() {
 
   return (
     <div>
-      <canvas ref={canvasRef} width='1024' height='1024'></canvas>
-      <input type='range' min='10' max='1000' value={timer} onChange={(e) => setTimer(Number(e.target.value))} />
+      <canvas ref={canvasRef} width="1024" height="1024"></canvas>
+      <input
+        type="range"
+        min="10"
+        max="1000"
+        value={timer}
+        onChange={(e) => setTimer(Number(e.target.value))}
+      />
     </div>
   );
 }
