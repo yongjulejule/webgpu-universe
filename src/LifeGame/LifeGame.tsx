@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import drawingShader from './draw.wgsl?raw';
 import computeShader from './compute.wgsl?raw'
 
-const gpu = async (canvas: HTMLCanvasElement, interval: number) => {
+const gpu = async (canvas: HTMLCanvasElement) => {
   // const canvas = document.querySelector('canvas');
 
   if (!navigator.gpu) {
@@ -110,7 +110,7 @@ const gpu = async (canvas: HTMLCanvasElement, interval: number) => {
 
   // Create a uniform buffer that describes the grid.
 
-  const GRID_SIZE = 64;
+  const GRID_SIZE = 256;
 
   const uniformArray = new Float32Array([GRID_SIZE, GRID_SIZE]);
   const uniformBuffer = device.createBuffer({
@@ -224,7 +224,7 @@ const gpu = async (canvas: HTMLCanvasElement, interval: number) => {
     computePass.setPipeline(simulationPipeline);
     computePass.setBindGroup(0, bindGroups[step % 2]);
 
-    const workgroupCount = Math.ceil(GRID_SIZE / 16);
+    const workgroupCount = Math.ceil(GRID_SIZE / workgroupSize);
     computePass.dispatchWorkgroups(workgroupCount, workgroupCount);
 
     computePass.end();
@@ -256,7 +256,6 @@ const gpu = async (canvas: HTMLCanvasElement, interval: number) => {
   }
 
   // Schedule updateGrid() to run repeatedly
-  // return setInterval(updateGrid, interval);
   return updateGrid;
 };
 
@@ -270,7 +269,7 @@ export default function LifeGame() {
 
     const runGpu = async () => {
       if (canvasRef.current) {
-        run = await gpu(canvasRef.current, timer);
+        run = await gpu(canvasRef.current);
         id = setInterval(run, timer);
       }
     }
@@ -285,7 +284,7 @@ export default function LifeGame() {
 
   return (
     <div>
-      <canvas ref={canvasRef} width='512' height='512'></canvas>
+      <canvas ref={canvasRef} width='1024' height='1024'></canvas>
       <input type='range' min='10' max='1000' value={timer} onChange={(e) => setTimer(Number(e.target.value))} />
     </div>
   );
