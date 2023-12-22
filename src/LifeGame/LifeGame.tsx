@@ -1,9 +1,8 @@
-
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import drawingShader from './draw.wgsl?raw';
 import computeShader from './compute.wgsl?raw'
 
-const gpu = async (canvas: HTMLCanvasElement) => {
+const gpu = async (canvas: HTMLCanvasElement, interval: number) => {
   // const canvas = document.querySelector('canvas');
 
   if (!navigator.gpu) {
@@ -59,6 +58,7 @@ const gpu = async (canvas: HTMLCanvasElement) => {
     label: 'Cell shader',
     code: drawingShader,
   });
+
   // Create the bind group layout and pipeline layout.
   const bindGroupLayout = device.createBindGroupLayout({
     label: 'Cell Bind Group Layout',
@@ -149,6 +149,8 @@ const gpu = async (canvas: HTMLCanvasElement) => {
   }
   device.queue.writeBuffer(cellStateStorage[1], 0, cellStateArray);
 
+  const workgroupSize = 16;
+
   // Create a bind group to pass the grid uniforms into the pipeline
   const bindGroups = [
     device.createBindGroup({
@@ -203,10 +205,13 @@ const gpu = async (canvas: HTMLCanvasElement) => {
     compute: {
       module: simulationShaderModule,
       entryPoint: 'computeMain',
+      constants: {
+        // The workgroup size is used to calculate the cell's neighbors.
+        workgroupSize: workgroupSize,
+      },
     },
   });
 
-  const UPDATE_INTERVAL = 100;
   let step = 0; // Track how many simulation steps have been run
 
   // Move all of our rendering code into a function
@@ -251,23 +256,37 @@ const gpu = async (canvas: HTMLCanvasElement) => {
   }
 
   // Schedule updateGrid() to run repeatedly
-  setInterval(updateGrid, UPDATE_INTERVAL);
+  // return setInterval(updateGrid, interval);
+  return updateGrid;
 };
 
 export default function LifeGame() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [timer, setTimer] = useState(100);
+
+  let run : any = undefined;
   useEffect(() => {
-    if (canvasRef.current) {
-      gpu(canvasRef.current);
+    let id: any;
+
+    const runGpu = async () => {
+      if (canvasRef.current) {
+        run = await gpu(canvasRef.current, timer);
+        id = setInterval(run, timer);
+      }
     }
 
-    return () => { };
-  }, []);
+    runGpu();
+
+    return () => {
+      if (id) clearInterval(id);
+      canvasRef.current = null;
+    };
+  }, [timer]);
 
   return (
     <div>
-      <h1>Conway&apos;s game of life</h1>
       <canvas ref={canvasRef} width='512' height='512'></canvas>
+      <input type='range' min='10' max='1000' value={timer} onChange={(e) => setTimer(Number(e.target.value))} />
     </div>
   );
 }
