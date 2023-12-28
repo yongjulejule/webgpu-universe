@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from "react";
 import drawingShader from "./draw.wgsl?raw";
 import computeShader from "./compute.wgsl?raw";
 
-const gpu = async (canvas: HTMLCanvasElement) => {
+export const initializeGameOfLife = async (canvas: HTMLCanvasElement) => {
   // const canvas = document.querySelector('canvas');
 
   if (!navigator.gpu) {
@@ -258,39 +257,3 @@ const gpu = async (canvas: HTMLCanvasElement) => {
   return updateGrid;
 };
 
-export default function LifeGame() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [timer, setTimer] = useState(100);
-
-  let run: any = undefined;
-  useEffect(() => {
-    let id: any;
-
-    const runGpu = async () => {
-      if (canvasRef.current) {
-        run = await gpu(canvasRef.current);
-        id = setInterval(run, timer);
-      }
-    };
-
-    runGpu();
-
-    return () => {
-      if (id) clearInterval(id);
-      canvasRef.current = null;
-    };
-  }, [timer]);
-
-  return (
-    <div>
-      <canvas ref={canvasRef} width="1024" height="1024"></canvas>
-      <input
-        type="range"
-        min="10"
-        max="1000"
-        value={timer}
-        onChange={(e) => setTimer(Number(e.target.value))}
-      />
-    </div>
-  );
-}
