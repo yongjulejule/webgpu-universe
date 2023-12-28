@@ -30,6 +30,9 @@ export const useGameOfLife = () => {
 
   useEffect(() => {
     const updateGridFunction = () => {
+      if (!runFunction) {
+        return;
+      }
       const now = Date.now();
       if (now - lastTimeRef.current > timer) {
         runFunction();

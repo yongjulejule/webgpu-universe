@@ -8,7 +8,7 @@ export default function GameOfLife() {
       <canvas ref={canvasRef} width="1024" height="1024"></canvas>
       <input
         type="range"
-        min="10"
+        min="1"
         max="1000"
         value={timer}
         onChange={(e) => setTimer(Number(e.target.value))}
